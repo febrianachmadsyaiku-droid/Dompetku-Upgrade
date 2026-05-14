@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dompetku - Aplikasi Pencatatan Keuangan</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1>💰 Dompetku</h1>
+                <button class="toggle-sidebar" id="toggleSidebar">☰</button>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#" data-nav="dashboard" class="nav-link active">📊 Dashboard</a></li>
+                <li><a href="#" data-nav="transaksi" class="nav-link">💳 Transaksi</a></li>
+                <li><a href="#" data-nav="akun" class="nav-link">🏦 Akun</a></li>
+                <li><a href="#" data-nav="target" class="nav-link">🎯 Target Tabung</a></li>
+                <li><a href="#" data-nav="budget" class="nav-link">📈 Anggaran</a></li>
+                <li><a href="#" data-nav="laporan" class="nav-link">📋 Laporan</a></li>
+                <li><a href="#" data-nav="pengaturan" class="nav-link">⚙️ Pengaturan</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <p>Versi 2.0</p>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h2>📊 Dashboard</h2>
+                    <div class="month-selector">
+                        <button id="prevMonth" class="nav-month">← Sebelumnya</button>
+                        <span id="currentMonth" class="current-month"></span>
+                        <button id="nextMonth" class="nav-month">Berikutnya →</button>
+                    </div>
+                </div>
+
+                <div class="dashboard-stats">
+                    <div class="stat-card income">
+                        <div class="stat-icon">💵</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total Pemasukan</p>
+                            <p class="stat-value" id="dashboardIncome">Rp 0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card expense">
+                        <div class="stat-icon">💸</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total Pengeluaran</p>
+                            <p class="stat-value" id="dashboardExpense">Rp 0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card balance">
+                        <div class="stat-icon">💳</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Saldo Total</p>
+                            <p class="stat-value" id="dashboardBalance">Rp 0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card target">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total Target Tabung</p>
+                            <p class="stat-value" id="dashboardTarget">Rp 0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Summary -->
+                <div class="account-summary">
+                    <h3>💼 Ringkasan per Akun</h3>
+                    <div id="accountSummaryCards" class="account-cards">
+                        <p class="empty-message">Belum ada akun</p>
+                    </div>
+                </div>
+
+                <div class="charts-container">
+                    <div class="chart-box">
+                        <h3>📈 Tren 30 Hari</h3>
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h3>📊 Distribusi Pengeluaran</h3>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="recent-transactions">
+                    <h3>📝 Transaksi Terbaru</h3>
+                    <div id="recentTransList" class="transaction-list">
+                        <p class="empty-message">Belum ada transaksi</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transaksi Section -->
+            <section id="transaksi" class="content-section">
+                <div class="section-header">
+                    <h2>💳 Manajemen Transaksi</h2>
+                </div>
+
+                <div class="transaksi-container">
+                    <!-- Input Form -->
+                    <div class="form-box">
+                        <h3>➕ Tambah Transaksi Baru</h3>
+                        <form id="transactionForm">
+                            <div class="form-group">
+                                <label for="tipeTransaksi">Tipe Transaksi *</label>
+                                <select id="tipeTransaksi" required>
+                                    <option value="">-- Pilih Tipe --</option>
+                                    <option value="pemasukan">Pemasukan</option>
+                                    <option value="pengeluaran">Pengeluaran</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="kategoriTransaksi">Kategori *</label>
+                                <select id="kategoriTransaksi" required>
+                                    <option value="">-- Pilih Kategori --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="akunTransaksi">Akun/Dompet *</label>
+                                <select id="akunTransaksi" required>
+                                    <option value="">-- Pilih Akun --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="nominalTransaksi">Nominal (Rp) *</label>
+                                <input type="number" id="nominalTransaksi" min="0" required placeholder="0">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="deskripsiTransaksi">Deskripsi</label>
+                                <input type="text" id="deskripsiTransaksi" placeholder="Catatan transaksi...">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="tanggalTransaksi">Tanggal *</label>
+                                <input type="date" id="tanggalTransaksi" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="recurring">Transaksi Berulang</label>
+                                <select id="recurring">
+                                    <option value="none">Tidak Ada</option>
+                                    <option value="daily">Harian</option>
+                                    <option value="weekly">Mingguan</option>
+                                    <option value="monthly">Bulanan</option>
+                                    <option value="yearly">Tahunan</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn-primary">💾 Simpan Transaksi</button>
+                        </form>
+                    </div>
+
+                    <!-- Filter & List -->
+                    <div class="list-box">
+                        <h3>📋 Daftar Transaksi</h3>
+
+                        <div class="filter-section">
+                            <div class="filter-group">
+                                <input type="text" id="searchTransaksi" placeholder="🔍 Cari transaksi..." class="filter-input">
+                            </div>
+                            <div class="filter-group">
+                                <select id="filterTipe" class="filter-input">
+                                    <option value="">Semua Tipe</option>
+                                    <option value="pemasukan">Pemasukan</option>
+                                    <option value="pengeluaran">Pengeluaran</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <select id="filterKategori" class="filter-input">
+                                    <option value="">Semua Kategori</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <select id="filterAkun" class="filter-input">
+                                    <option value="">Semua Akun</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <select id="filterBulan" class="filter-input">
+                                    <option value="">Semua Bulan</option>
+                                </select>
+                            </div>
+                            <button id="clearFilters" class="btn-secondary">🔄 Reset Filter</button>
+                        </div>
+
+                        <div id="transactionList" class="transaction-list">
+                            <p class="empty-message">Belum ada transaksi</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Akun Section (NEW) -->
+            <section id="akun" class="content-section">
+                <div class="section-header">
+                    <h2>🏦 Manajemen Akun/Dompet</h2>
+                </div>
+
+                <div class="akun-container">
+                    <!-- Add Account Form -->
+                    <div class="form-box">
+                        <h3>➕ Tambah Akun/Dompet Baru</h3>
+                        <form id="accountForm">
+                            <div class="form-group">
+                                <label for="namaAkun">Nama Akun *</label>
+                                <input type="text" id="namaAkun" required placeholder="Misal: Rekening BCA, Dana, OVO, etc">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="tipeAkun">Tipe Akun *</label>
+                                <select id="tipeAkun" required>
+                                    <option value="">-- Pilih Tipe --</option>
+                                    <option value="bank">🏦 Bank</option>
+                                    <option value="ewallet">📱 E-Wallet</option>
+                                    <option value="cash">💵 Tunai</option>
+                                    <option value="investment">📈 Investasi</option>
+                                    <option value="other">📝 Lainnya</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="saldoAwal">Saldo Awal (Rp)</label>
+                                <input type="number" id="saldoAwal" min="0" placeholder="0">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="warnaBadge">Warna Badge</label>
+                                <input type="color" id="warnaBadge" value="#4f46e5">
+                            </div>
+
+                            <button type="submit" class="btn-primary">💾 Tambah Akun</button>
+                        </form>
+                    </div>
+
+                    <!-- Account List -->
+                    <div class="list-box">
+                        <h3>📊 Daftar Akun</h3>
+                        <div id="accountList" class="account-list">
+                            <p class="empty-message">Belum ada akun</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Target Tabung Section (NEW) -->
+            <section id="target" class="content-section">
+                <div class="section-header">
+                    <h2>🎯 Target Tabung</h2>
+                </div>
+
+                <div class="target-container">
+                    <!-- Add Target Form -->
+                    <div class="form-box">
+                        <h3>➕ Buat Target Tabung Baru</h3>
+                        <form id="targetForm">
+                            <div class="form-group">
+                                <label for="namaTarget">Nama Target *</label>
+                                <input type="text" id="namaTarget" required placeholder="Misal: Beli Motor, Liburan, dll">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="targetNominal">Target Nominal (Rp) *</label>
+                                <input type="number" id="targetNominal" min="0" required placeholder="0">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="targetBulan">Deadline Bulan</label>
+                                <input type="month" id="targetBulan" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="deskripsiTarget">Deskripsi Target</label>
+                                <textarea id="deskripsiTarget" placeholder="Tulis alasan atau rencana..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="targetAkun">Akun Target *</label>
+                                <select id="targetAkun" required>
+                                    <option value="">-- Pilih Akun --</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn-primary">🎯 Buat Target</button>
+                        </form>
+                    </div>
+
+                    <!-- Target List -->
+                    <div class="list-box">
+                        <h3>📊 Daftar Target Tabung</h3>
+                        <div id="targetList" class="target-list">
+                            <p class="empty-message">Belum ada target</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Budget Section -->
+            <section id="budget" class="content-section">
+                <div class="section-header">
+                    <h2>📈 Manajemen Anggaran</h2>
+                </div>
+
+                <div class="budget-container">
+                    <!-- Add Budget Form -->
+                    <div class="form-box">
+                        <h3>➕ Tetapkan Anggaran Baru</h3>
+                        <form id="budgetForm">
+                            <div class="form-group">
+                                <label for="budgetKategori">Kategori *</label>
+                                <select id="budgetKategori" required>
+                                    <option value="">-- Pilih Kategori --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="budgetLimit">Batas Anggaran (Rp) *</label>
+                                <input type="number" id="budgetLimit" min="0" required placeholder="0">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="budgetBulan">Bulan *</label>
+                                <input type="month" id="budgetBulan" required>
+                            </div>
+
+                            <button type="submit" class="btn-primary">💾 Simpan Anggaran</button>
+                        </form>
+                    </div>
+
+                    <!-- Budget List -->
+                    <div class="list-box">
+                        <h3>📊 Daftar Anggaran</h3>
+                        <div id="budgetList" class="budget-list">
+                            <p class="empty-message">Belum ada anggaran</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Laporan Section -->
+            <section id="laporan" class="content-section">
+                <div class="section-header">
+                    <h2>📋 Laporan Keuangan</h2>
+                    <div class="month-selector">
+                        <button id="prevMonthReport" class="nav-month">← Sebelumnya</button>
+                        <span id="currentMonthReport" class="current-month"></span>
+                        <button id="nextMonthReport" class="nav-month">Berikutnya →</button>
+                    </div>
+                </div>
+
+                <div class="laporan-container">
+                    <div class="report-summary">
+                        <h3>📊 Ringkasan Bulanan</h3>
+                        <div class="summary-stats">
+                            <div class="summary-card">
+                                <p class="label">Total Pemasukan</p>
+                                <p class="value income" id="reportIncome">Rp 0</p>
+                            </div>
+                            <div class="summary-card">
+                                <p class="label">Total Pengeluaran</p>
+                                <p class="value expense" id="reportExpense">Rp 0</p>
+                            </div>
+                            <div class="summary-card">
+                                <p class="label">Saldo Bersih</p>
+                                <p class="value balance" id="reportBalance">Rp 0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-details">
+                        <h3>📊 Pengeluaran per Kategori</h3>
+                        <div id="categoryBreakdown" class="category-breakdown">
+                            <p class="empty-message">Belum ada pengeluaran</p>
+                        </div>
+                    </div>
+
+                    <div class="report-account-details">
+                        <h3>🏦 Rincian per Akun</h3>
+                        <div id="accountBreakdown" class="account-breakdown">
+                            <p class="empty-message">Belum ada transaksi</p>
+                        </div>
+                    </div>
+
+                    <div class="report-transactions">
+                        <h3>📝 Daftar Transaksi Detail</h3>
+                        <div id="reportTransactions" class="transaction-list">
+                            <p class="empty-message">Belum ada transaksi</p>
+                        </div>
+                    </div>
+
+                    <button id="exportReportPDF" class="btn-primary">📄 Export Laporan (PDF)</button>
+                </div>
+            </section>
+
+            <!-- Pengaturan Section -->
+            <section id="pengaturan" class="content-section">
+                <div class="section-header">
+                    <h2>⚙️ Pengaturan</h2>
+                </div>
+
+                <div class="settings-container">
+                    <!-- Kategori Custom -->
+                    <div class="settings-box">
+                        <h3>📁 Kelola Kategori Custom</h3>
+                        <form id="categoryForm">
+                            <div class="form-group">
+                                <label for="categoryType">Tipe Kategori *</label>
+                                <select id="categoryType" required>
+                                    <option value="">-- Pilih Tipe --</option>
+                                    <option value="pemasukan">Pemasukan</option>
+                                    <option value="pengeluaran">Pengeluaran</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="categoryName">Nama Kategori *</label>
+                                <input type="text" id="categoryName" required placeholder="Misal: Makan Siang">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="categoryIcon">Icon Emoji</label>
+                                <input type="text" id="categoryIcon" maxlength="2" placeholder="🍽️" value="📝">
+                            </div>
+
+                            <button type="submit" class="btn-primary">➕ Tambah Kategori</button>
+                        </form>
+
+                        <h4>Kategori Custom yang Ada:</h4>
+                        <div id="customCategoriesList" class="categories-list">
+                            <p class="empty-message">Belum ada kategori custom</p>
+                        </div>
+                    </div>
+
+                    <!-- Backup & Restore -->
+                    <div class="settings-box">
+                        <h3>💾 Backup & Restore Data</h3>
+                        <div class="backup-section">
+                            <button id="backupBtn" class="btn-primary">📄 Backup Data ke PDF</button>
+                            <p class="info-text">Unduh semua data Anda sebagai file PDF untuk keamanan.</p>
+                        </div>
+
+                        <div class="restore-section">
+                            <label for="restoreFile">📤 Restore dari File Backup</label>
+                            <input type="file" id="restoreFile" accept=".json">
+                            <button id="restoreBtn" class="btn-primary">Restore Data</button>
+                            <p class="info-text">Pilih file backup JSON untuk mengembalikan data Anda.</p>
+                        </div>
+                    </div>
+
+                    <!-- Hapus Data -->
+                    <div class="settings-box danger-zone">
+                        <h3>⚠️ Zona Berbahaya</h3>
+                        <p class="warning-text">Tindakan ini tidak dapat dibatalkan!</p>
+                        <button id="deleteAllBtn" class="btn-danger">🗑️ Hapus Semua Data</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal untuk Edit Transaksi -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>✏️ Edit Transaksi</h2>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label for="editKategori">Kategori</label>
+                    <select id="editKategori" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="editAkun">Akun</label>
+                    <select id="editAkun" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="editNominal">Nominal (Rp)</label>
+                    <input type="number" id="editNominal" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="editDeskripsi">Deskripsi</label>
+                    <input type="text" id="editDeskripsi">
+                </div>
+                <div class="form-group">
+                    <label for="editTanggal">Tanggal</label>
+                    <input type="date" id="editTanggal" required>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">💾 Simpan Perubahan</button>
+                    <button type="button" class="btn-secondary" id="cancelEdit">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal untuk Edit Target -->
+    <div id="editTargetModal" class="modal">
+        <div class="modal-content">
+            <span class="close-target">&times;</span>
+            <h2>✏️ Edit Target Tabung</h2>
+            <form id="editTargetForm">
+                <input type="hidden" id="editTargetId">
+                <div class="form-group">
+                    <label for="editTargetNama">Nama Target</label>
+                    <input type="text" id="editTargetNama" required>
+                </div>
+                <div class="form-group">
+                    <label for="editTargetNominal">Target Nominal (Rp)</label>
+                    <input type="number" id="editTargetNominal" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="editTargetTersimpan">Sudah Terkumpul (Rp)</label>
+                    <input type="number" id="editTargetTersimpan" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="editTargetBulan">Deadline Bulan</label>
+                    <input type="month" id="editTargetBulan" required>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">💾 Simpan Perubahan</button>
+                    <button type="button" class="btn-secondary" id="cancelEditTarget">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
